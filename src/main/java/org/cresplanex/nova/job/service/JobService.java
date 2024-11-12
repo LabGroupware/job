@@ -13,6 +13,8 @@ import org.cresplanex.nova.job.event.model.BeginJob;
 import org.cresplanex.nova.job.event.model.FailedJob;
 import org.cresplanex.nova.job.event.model.ProcessedJob;
 import org.cresplanex.nova.job.event.model.SuccessfullyJob;
+import org.cresplanex.nova.job.event.model.job.JobBegan;
+import org.cresplanex.nova.job.event.publisher.JobDomainEventPublisher;
 import org.cresplanex.nova.job.template.KeyValueTemplate;
 import org.cresplanex.nova.job.util.CustomIdGenerator;
 import org.cresplanex.nova.job.util.NullableFlexProtoMapper;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,8 @@ public class JobService {
 
     private final CustomIdGenerator customIdGenerator;
     private final KeyValueTemplate keyValueTemplate;
+
+    private final JobDomainEventPublisher domainEventPublisher;
 
     public String create() {
         String id = customIdGenerator.generate();
@@ -135,6 +140,19 @@ public class JobService {
                 updatedJob.toByteArray(),
                 expiredTime,
                 TimeUnit.MILLISECONDS
+        );
+
+        domainEventPublisher.publish(
+                updatedJob,
+                Collections.singletonList(
+                        new JobBegan(
+//                                data.getJobId(),
+//                                nextActions,
+//                                firstAction,
+//                                data.getStartedAt()
+                        )
+                ),
+                JobBegan.TYPE
         );
     }
 

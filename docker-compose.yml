@@ -28,11 +28,11 @@ services:
     networks:
       - connect_network
     volumes:
-      - ./debezium/account-auth-connector-config.json:/tmp/account-auth-connector-config.json
+      - ./debezium/job-service-connector-config.json:/tmp/job-service-connector-config.json
     entrypoint: >
       sh -c "
         sleep 10 &&
-        curl -X POST -H 'Content-Type: application/json' --data @/tmp/account-auth-connector-config.json http://connect:8083/connectors
+        curl -X POST -H 'Content-Type: application/json' --data @/tmp/job-service-connector-config.json http://connect:8083/connectors
       "
 volumes:
   db-store:
