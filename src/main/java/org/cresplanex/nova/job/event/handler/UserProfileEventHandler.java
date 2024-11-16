@@ -2,14 +2,11 @@ package org.cresplanex.nova.job.event.handler;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cresplanex.api.state.common.event.EventAggregateType;
+import org.cresplanex.api.state.common.event.model.userprofile.UserProfileCreated;
 import org.cresplanex.core.events.common.DomainEventEnvelope;
 import org.cresplanex.core.events.subscriber.DomainEventHandlers;
 import org.cresplanex.core.events.subscriber.DomainEventHandlersBuilder;
-import org.cresplanex.nova.job.event.EventAggregateChannel;
-import org.cresplanex.nova.job.event.model.userprofile.BeginCreateUserProfile;
-import org.cresplanex.nova.job.event.model.userprofile.FailedCreateUserProfile;
-import org.cresplanex.nova.job.event.model.userprofile.ProcessedCreateUserProfile;
-import org.cresplanex.nova.job.event.model.userprofile.SuccessfullyCreateUserProfile;
 import org.cresplanex.nova.job.service.JobService;
 import org.springframework.stereotype.Component;
 
@@ -22,27 +19,27 @@ public class UserProfileEventHandler {
 
     public DomainEventHandlers domainEventHandlers() {
         return DomainEventHandlersBuilder
-                .forAggregateType(EventAggregateChannel.USER_PROFILE)
-                .onEvent(BeginCreateUserProfile.class, this::handleBeginUserCreated, BeginCreateUserProfile.TYPE)
-                .onEvent(ProcessedCreateUserProfile.class, this::handleProcessedUserCreated, ProcessedCreateUserProfile.TYPE)
-                .onEvent(FailedCreateUserProfile.class, this::handleFailedUserCreated, FailedCreateUserProfile.TYPE)
-                .onEvent(SuccessfullyCreateUserProfile.class, this::handleSuccessfullyUserCreated, SuccessfullyCreateUserProfile.TYPE)
+                .forAggregateType(EventAggregateType.USER_PROFILE)
+                .onEvent(UserProfileCreated.BeginJobDomainEvent.class, this::handleBeginUserCreated, UserProfileCreated.BeginJobDomainEvent.TYPE)
+                .onEvent(UserProfileCreated.ProcessedJobDomainEvent.class, this::handleProcessedUserCreated, UserProfileCreated.ProcessedJobDomainEvent.TYPE)
+                .onEvent(UserProfileCreated.FailedJobDomainEvent.class, this::handleFailedUserCreated, UserProfileCreated.FailedJobDomainEvent.TYPE)
+                .onEvent(UserProfileCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyUserCreated, UserProfileCreated.SuccessJobDomainEvent.TYPE)
                 .build();
     }
 
-    private void handleBeginUserCreated(DomainEventEnvelope<BeginCreateUserProfile> dee) {
+    private void handleBeginUserCreated(DomainEventEnvelope<UserProfileCreated.BeginJobDomainEvent> dee) {
         jobService.update(dee.getEvent());
     }
 
-    private void handleProcessedUserCreated(DomainEventEnvelope<ProcessedCreateUserProfile> dee) {
+    private void handleProcessedUserCreated(DomainEventEnvelope<UserProfileCreated.ProcessedJobDomainEvent> dee) {
         jobService.update(dee.getEvent());
     }
 
-    private void handleFailedUserCreated(DomainEventEnvelope<FailedCreateUserProfile> dee) {
+    private void handleFailedUserCreated(DomainEventEnvelope<UserProfileCreated.FailedJobDomainEvent> dee) {
         jobService.update(dee.getEvent());
     }
 
-    private void handleSuccessfullyUserCreated(DomainEventEnvelope<SuccessfullyCreateUserProfile> dee) {
+    private void handleSuccessfullyUserCreated(DomainEventEnvelope<UserProfileCreated.SuccessJobDomainEvent> dee) {
         jobService.update(dee.getEvent());
     }
 }

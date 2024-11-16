@@ -7,17 +7,17 @@ import build.buf.gen.job.v1.Job;
 import build.buf.gen.job.v1.JobAction;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.RequiredArgsConstructor;
+import org.cresplanex.api.state.common.constants.JobServiceApplicationCode;
+import org.cresplanex.api.state.common.event.model.BeginJobEvent;
+import org.cresplanex.api.state.common.event.model.FailedJobEvent;
+import org.cresplanex.api.state.common.event.model.ProcessedJobEvent;
+import org.cresplanex.api.state.common.event.model.SuccessJobEvent;
+import org.cresplanex.api.state.common.event.model.job.JobBegan;
+import org.cresplanex.api.state.common.utils.CustomIdGenerator;
+import org.cresplanex.api.state.common.utils.NullableFlexProtoMapper;
 import org.cresplanex.nova.job.constants.KeyPrefix;
-import org.cresplanex.nova.job.constants.ServerErrorCode;
-import org.cresplanex.nova.job.event.model.BeginJob;
-import org.cresplanex.nova.job.event.model.FailedJob;
-import org.cresplanex.nova.job.event.model.ProcessedJob;
-import org.cresplanex.nova.job.event.model.SuccessfullyJob;
-import org.cresplanex.nova.job.event.model.job.JobBegan;
 import org.cresplanex.nova.job.event.publisher.JobDomainEventPublisher;
 import org.cresplanex.nova.job.template.KeyValueTemplate;
-import org.cresplanex.nova.job.util.CustomIdGenerator;
-import org.cresplanex.nova.job.util.NullableFlexProtoMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +36,7 @@ public class JobService {
     @Value("${job.expired-time:86400000}")
     private long expiredTime;
 
-    private final CustomIdGenerator customIdGenerator;
+    private final CustomIdGenerator customIdGenerator = new CustomIdGenerator();
     private final KeyValueTemplate keyValueTemplate;
 
     private final JobDomainEventPublisher domainEventPublisher;
@@ -58,7 +58,7 @@ public class JobService {
                 .setPendingAction(NullableString.newBuilder().setHasValue(false).build())
                 .setCode(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(ServerErrorCode.JOB_NOT_INITIALIZED)
+                        .setValue(JobServiceApplicationCode.NOT_INITIALIZED)
                         .build()
                 )
                 .setCaption(
@@ -90,7 +90,7 @@ public class JobService {
         }
     }
 
-    public void update(BeginJob beginJob) {
+    public void update(BeginJobEvent beginJob) {
         Job job = findById(beginJob.getJobId());
 
         String startTimeStr = beginJob.getTimestamp();
@@ -115,7 +115,7 @@ public class JobService {
                 )
                 .setCode(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(ServerErrorCode.JOB_PROCESSING)
+                        .setValue(JobServiceApplicationCode.PROCESSING)
                         .build()
                 )
                 .setCaption(
@@ -156,7 +156,7 @@ public class JobService {
         );
     }
 
-    public void update(ProcessedJob processedJob) {
+    public void update(ProcessedJobEvent processedJob) {
         Job job = findById(processedJob.getJobId());
         List<String> scheduledActions = job.getScheduledActions().getValueList();
         NullableString.Builder pendingAction = NullableString.newBuilder();
@@ -202,7 +202,7 @@ public class JobService {
         updateOnlyValue(updatedJob, processedJob.getJobId());
     }
 
-    public void update(SuccessfullyJob successfullyJob) {
+    public void update(SuccessJobEvent successfullyJob) {
         Job job = findById(successfullyJob.getJobId());
         Job updatedJob = Job.newBuilder(job)
                 .setSuccess(true)
@@ -213,7 +213,7 @@ public class JobService {
                 )
                 .setCode(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(ServerErrorCode.JOB_COMPLETED)
+                        .setValue(JobServiceApplicationCode.COMPLETED)
                         .build()
                 )
                 .setCaption(
@@ -231,7 +231,7 @@ public class JobService {
         updateOnlyValue(updatedJob, successfullyJob.getJobId());
     }
 
-    public void update(FailedJob failedJob) {
+    public void update(FailedJobEvent failedJob) {
         Job job = findById(failedJob.getJobId());
 
         List<JobAction> actions = job.getCompletedActionsList();
@@ -257,7 +257,7 @@ public class JobService {
                 .setErrorAttributes(NullableFlexProtoMapper.mapToNullableFlex(failedJob.getEndedErrorAttributes()))
                 .setCode(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(ServerErrorCode.JOB_FAILED)
+                        .setValue(JobServiceApplicationCode.FAILED)
                         .build()
                 )
                 .setCaption(
@@ -308,7 +308,7 @@ public class JobService {
                 .setCode(
                         NullableString.newBuilder()
                                 .setHasValue(true)
-                                .setValue(ServerErrorCode.JOB_NOT_FOUND)
+                                .setValue(JobServiceApplicationCode.NOT_FOUND)
                                 .build()
                 )
                 .setCaption(

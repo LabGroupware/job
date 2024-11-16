@@ -37,11 +37,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'build.buf.gen:labgroupware_state_grpc_java:1.68.1.1.20241111150706.813b4ae799cb'
 	implementation "net.devh:grpc-server-spring-boot-starter:${grpcStarterVersion}"
 	implementation "net.logstash.logback:logstash-logback-encoder:${logstashEncoder}"
 
-	implementation 'org.cresplanex:core:1.0.0'
+	implementation "org.cresplanex.api.state:common:1.0.0"
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
