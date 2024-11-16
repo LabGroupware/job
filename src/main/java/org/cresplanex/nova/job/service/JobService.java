@@ -7,6 +7,7 @@ import build.buf.gen.job.v1.Job;
 import build.buf.gen.job.v1.JobAction;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cresplanex.api.state.common.constants.JobServiceApplicationCode;
 import org.cresplanex.api.state.common.event.model.BeginJobEvent;
 import org.cresplanex.api.state.common.event.model.FailedJobEvent;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class JobService {
@@ -158,20 +160,21 @@ public class JobService {
 
     public void update(ProcessedJobEvent processedJob) {
         Job job = findById(processedJob.getJobId());
+        log.debug("Before Job: {}", job);
         List<String> scheduledActions = job.getScheduledActions().getValueList();
         NullableString.Builder pendingAction = NullableString.newBuilder();
         if (scheduledActions.isEmpty()) { // 次のアクションがある場合
             pendingAction.setHasValue(false);
         }else{
             pendingAction.setHasValue(true).setValue(scheduledActions.getFirst());
-            scheduledActions.removeFirst();
+            scheduledActions = scheduledActions.subList(1, scheduledActions.size());
         }
         List<JobAction> actions = job.getCompletedActionsList();
         if (actions.isEmpty()) {
             actions = new LinkedList<>();
         }
         NullableFlex data = NullableFlexProtoMapper.mapToNullableFlex(processedJob.getData());
-        actions.addLast(JobAction.newBuilder()
+        JobAction newAction = JobAction.newBuilder()
                 .setActionCode(processedJob.getActionCode())
                 .setSuccess(true)
                 .setData(data)
@@ -183,8 +186,9 @@ public class JobService {
                                 .build()
                 )
                 .setDatetime(processedJob.getTimestamp())
-                .build()
-        );
+                .build();
+        actions = new LinkedList<>(actions);
+        actions.addLast(newAction);
         Job updatedJob = Job.newBuilder(job)
                 .setSuccess(false)
                 .setProcess(true)
@@ -199,6 +203,7 @@ public class JobService {
                 .addAllCompletedActions(actions)
                 .setErrorAttributes(NullableFlex.newBuilder().setHasValue(false).build())
                 .build();
+        log.debug("After Job: {}", updatedJob);
         updateOnlyValue(updatedJob, processedJob.getJobId());
     }
 
@@ -228,6 +233,7 @@ public class JobService {
                         .build()
                 )
                 .build();
+        log.debug("Successfully Job: {}", updatedJob);
         updateOnlyValue(updatedJob, successfullyJob.getJobId());
     }
 
@@ -238,6 +244,7 @@ public class JobService {
         if (actions.isEmpty()) {
             actions = new LinkedList<>();
         }
+        actions = new LinkedList<>(actions);
         actions.addLast(JobAction.newBuilder()
                 .setActionCode(failedJob.getActionCode())
                 .setSuccess(false)
@@ -272,6 +279,7 @@ public class JobService {
                         .build()
                 )
                 .build();
+        log.debug("Failed Job: {}", updatedJob);
         updateOnlyValue(updatedJob, failedJob.getJobId());
     }
 
