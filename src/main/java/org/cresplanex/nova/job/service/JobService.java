@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -128,12 +127,12 @@ public class JobService {
                 )
                 .setStartedAt(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(startLocalTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+                        .setValue(startLocalTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                         .build()
                 )
                 .setExpiredAt(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(expiredLocalTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+                        .setValue(expiredLocalTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                         .build()
                 )
                 .build();
@@ -169,10 +168,6 @@ public class JobService {
             pendingAction.setHasValue(true).setValue(scheduledActions.getFirst());
             scheduledActions = scheduledActions.subList(1, scheduledActions.size());
         }
-        List<JobAction> actions = job.getCompletedActionsList();
-        if (actions.isEmpty()) {
-            actions = new LinkedList<>();
-        }
         NullableFlex data = NullableFlexProtoMapper.mapToNullableFlex(processedJob.getData());
         JobAction newAction = JobAction.newBuilder()
                 .setActionCode(processedJob.getActionCode())
@@ -187,8 +182,6 @@ public class JobService {
                 )
                 .setDatetime(processedJob.getTimestamp())
                 .build();
-        actions = new LinkedList<>(actions);
-        actions.addLast(newAction);
         Job updatedJob = Job.newBuilder(job)
                 .setSuccess(false)
                 .setProcess(true)
@@ -200,7 +193,7 @@ public class JobService {
                                 .build()
                 )
                 .setPendingAction(pendingAction.build())
-                .addAllCompletedActions(actions)
+                .addCompletedActions(newAction)
                 .setErrorAttributes(NullableFlex.newBuilder().setHasValue(false).build())
                 .build();
         log.debug("After Job: {}", updatedJob);
@@ -229,36 +222,32 @@ public class JobService {
                 )
                 .setCompletedAt(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME))
+                        .setValue(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                         .build()
                 )
                 .build();
         log.debug("Successfully Job: {}", updatedJob);
+        log.info("jobId: {}", successfullyJob.getJobId());
         updateOnlyValue(updatedJob, successfullyJob.getJobId());
     }
 
     public void update(FailedJobEvent failedJob) {
         Job job = findById(failedJob.getJobId());
 
-        List<JobAction> actions = job.getCompletedActionsList();
-        if (actions.isEmpty()) {
-            actions = new LinkedList<>();
-        }
-        actions = new LinkedList<>(actions);
-        actions.addLast(JobAction.newBuilder()
+        JobAction newAction = JobAction.newBuilder()
                 .setActionCode(failedJob.getActionCode())
                 .setSuccess(false)
                 .setData(NullableFlex.newBuilder().setHasValue(false).build())
                 .setCode(failedJob.getInternalCode())
                 .setCaption(failedJob.getInternalCaption())
-                .setErrorAttributes(NullableFlexProtoMapper.mapToNullableFlex(failedJob.getData()))
+                .setErrorAttributes(NullableFlexProtoMapper.mapToNullableFlex(failedJob.getEndedErrorAttributes()))
                 .setDatetime(failedJob.getTimestamp())
-                .build()
-        );
+                .build();
         Job updatedJob = Job.newBuilder(job)
                 .setSuccess(false)
                 .setProcess(false)
                 .setIsValid(true)
+                .addCompletedActions(newAction)
                 .setScheduledActions(NullableStringArray.newBuilder().setHasValue(false).build())
                 .setPendingAction(NullableString.newBuilder().setHasValue(false).build())
                 .setErrorAttributes(NullableFlexProtoMapper.mapToNullableFlex(failedJob.getEndedErrorAttributes()))
@@ -275,11 +264,12 @@ public class JobService {
                 )
                 .setCompletedAt(NullableString.newBuilder()
                         .setHasValue(true)
-                        .setValue(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME))
+                        .setValue(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                         .build()
                 )
                 .build();
         log.debug("Failed Job: {}", updatedJob);
+        log.info("jobId: {}", failedJob.getJobId());
         updateOnlyValue(updatedJob, failedJob.getJobId());
     }
 
