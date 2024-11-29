@@ -34,34 +34,34 @@ public class TeamEventHandler {
     }
 
     private void handleBeginTeamCreated(DomainEventEnvelope<TeamCreated.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamCreated.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedTeamCreated(DomainEventEnvelope<TeamCreated.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamCreated.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedTeamCreated(DomainEventEnvelope<TeamCreated.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamCreated.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyTeamCreated(DomainEventEnvelope<TeamCreated.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamCreated.SuccessJobDomainEvent.TYPE);
     }
 
     private void handleBeginTeamAddedUsers(DomainEventEnvelope<TeamAddedUsers.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamAddedUsers.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedTeamAddedUsers(DomainEventEnvelope<TeamAddedUsers.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamAddedUsers.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedTeamAddedUsers(DomainEventEnvelope<TeamAddedUsers.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamAddedUsers.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyTeamAddedUsers(DomainEventEnvelope<TeamAddedUsers.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TeamAddedUsers.SuccessJobDomainEvent.TYPE);
     }
 }

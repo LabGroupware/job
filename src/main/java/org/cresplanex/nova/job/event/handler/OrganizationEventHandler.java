@@ -34,34 +34,34 @@ public class OrganizationEventHandler {
     }
 
     private void handleBeginOrganizationCreated(DomainEventEnvelope<OrganizationCreated.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationCreated.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedOrganizationCreated(DomainEventEnvelope<OrganizationCreated.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationCreated.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedOrganizationCreated(DomainEventEnvelope<OrganizationCreated.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationCreated.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyOrganizationCreated(DomainEventEnvelope<OrganizationCreated.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationCreated.SuccessJobDomainEvent.TYPE);
     }
 
     private void handleBeginOrganizationAddedUsers(DomainEventEnvelope<OrganizationAddedUsers.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationAddedUsers.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedOrganizationAddedUsers(DomainEventEnvelope<OrganizationAddedUsers.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationAddedUsers.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedOrganizationAddedUsers(DomainEventEnvelope<OrganizationAddedUsers.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationAddedUsers.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyOrganizationAddedUsers(DomainEventEnvelope<OrganizationAddedUsers.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), OrganizationAddedUsers.SuccessJobDomainEvent.TYPE);
     }
 }

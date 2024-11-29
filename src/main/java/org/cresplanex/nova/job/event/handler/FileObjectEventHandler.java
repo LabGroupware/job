@@ -28,18 +28,18 @@ public class FileObjectEventHandler {
     }
 
     private void handleBeginFileObjectCreated(DomainEventEnvelope<FileObjectCreated.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), FileObjectCreated.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedFileObjectCreated(DomainEventEnvelope<FileObjectCreated.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), FileObjectCreated.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedFileObjectCreated(DomainEventEnvelope<FileObjectCreated.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), FileObjectCreated.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyFileObjectCreated(DomainEventEnvelope<FileObjectCreated.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), FileObjectCreated.SuccessJobDomainEvent.TYPE);
     }
 }

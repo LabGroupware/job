@@ -28,18 +28,18 @@ public class UserPreferenceEventHandler {
     }
 
     private void handleBeginUserPreferenceUpdated(DomainEventEnvelope<UserPreferenceUpdated.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserPreferenceUpdated.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedUserPreferenceUpdated(DomainEventEnvelope<UserPreferenceUpdated.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserPreferenceUpdated.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedUserPreferenceUpdated(DomainEventEnvelope<UserPreferenceUpdated.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserPreferenceUpdated.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyUserPreferenceUpdated(DomainEventEnvelope<UserPreferenceUpdated.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserPreferenceUpdated.SuccessJobDomainEvent.TYPE);
     }
 }

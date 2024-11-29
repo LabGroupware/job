@@ -28,18 +28,18 @@ public class UserProfileEventHandler {
     }
 
     private void handleBeginUserCreated(DomainEventEnvelope<UserProfileCreated.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserProfileCreated.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedUserCreated(DomainEventEnvelope<UserProfileCreated.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserProfileCreated.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedUserCreated(DomainEventEnvelope<UserProfileCreated.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserProfileCreated.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyUserCreated(DomainEventEnvelope<UserProfileCreated.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), UserProfileCreated.SuccessJobDomainEvent.TYPE);
     }
 }

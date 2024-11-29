@@ -34,34 +34,34 @@ public class TaskEventHandler {
     }
 
     private void handleBeginTaskCreated(DomainEventEnvelope<TaskCreated.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskCreated.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedTaskCreated(DomainEventEnvelope<TaskCreated.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskCreated.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedTaskCreated(DomainEventEnvelope<TaskCreated.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskCreated.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyTaskCreated(DomainEventEnvelope<TaskCreated.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskCreated.SuccessJobDomainEvent.TYPE);
     }
 
     private void handleBeginTaskUpdatedStatus(DomainEventEnvelope<TaskUpdatedStatus.BeginJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskUpdatedStatus.BeginJobDomainEvent.TYPE);
     }
 
     private void handleProcessedTaskUpdatedStatus(DomainEventEnvelope<TaskUpdatedStatus.ProcessedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskUpdatedStatus.ProcessedJobDomainEvent.TYPE);
     }
 
     private void handleFailedTaskUpdatedStatus(DomainEventEnvelope<TaskUpdatedStatus.FailedJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskUpdatedStatus.FailedJobDomainEvent.TYPE);
     }
 
     private void handleSuccessfullyTaskUpdatedStatus(DomainEventEnvelope<TaskUpdatedStatus.SuccessJobDomainEvent> dee) {
-        jobService.update(dee.getEvent());
+        jobService.update(dee.getEvent(), TaskUpdatedStatus.SuccessJobDomainEvent.TYPE);
     }
 }

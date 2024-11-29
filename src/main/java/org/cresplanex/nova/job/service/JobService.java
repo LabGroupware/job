@@ -9,15 +9,20 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cresplanex.api.state.common.constants.JobServiceApplicationCode;
+import org.cresplanex.api.state.common.dto.JobDto;
 import org.cresplanex.api.state.common.event.model.BeginJobEvent;
 import org.cresplanex.api.state.common.event.model.FailedJobEvent;
 import org.cresplanex.api.state.common.event.model.ProcessedJobEvent;
 import org.cresplanex.api.state.common.event.model.SuccessJobEvent;
 import org.cresplanex.api.state.common.event.model.job.JobBegan;
+import org.cresplanex.api.state.common.event.model.job.JobFailed;
+import org.cresplanex.api.state.common.event.model.job.JobProcessed;
+import org.cresplanex.api.state.common.event.model.job.JobSuccess;
 import org.cresplanex.api.state.common.utils.CustomIdGenerator;
 import org.cresplanex.api.state.common.utils.NullableFlexProtoMapper;
 import org.cresplanex.nova.job.constants.KeyPrefix;
 import org.cresplanex.nova.job.event.publisher.JobDomainEventPublisher;
+import org.cresplanex.nova.job.mapper.JobMapper;
 import org.cresplanex.nova.job.template.KeyValueTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -91,7 +96,7 @@ public class JobService {
         }
     }
 
-    public void update(BeginJobEvent beginJob) {
+    public void update(BeginJobEvent beginJob, String type) {
         Job job = findById(beginJob.getJobId());
 
         String startTimeStr = beginJob.getTimestamp();
@@ -147,17 +152,18 @@ public class JobService {
                 updatedJob,
                 Collections.singletonList(
                         new JobBegan(
-//                                data.getJobId(),
-//                                nextActions,
-//                                firstAction,
-//                                data.getStartedAt()
+                                beginJob.getJobId(),
+                                type,
+                                beginJob.getPendingActionCode(),
+                                beginJob.getToActionCodes(),
+                                beginJob.getTimestamp()
                         )
                 ),
                 JobBegan.TYPE
         );
     }
 
-    public void update(ProcessedJobEvent processedJob) {
+    public void update(ProcessedJobEvent processedJob, String type) {
         Job job = findById(processedJob.getJobId());
         log.debug("Before Job: {}", job);
         List<String> scheduledActions = job.getScheduledActions().getValueList();
@@ -198,9 +204,26 @@ public class JobService {
                 .build();
         log.debug("After Job: {}", updatedJob);
         updateOnlyValue(updatedJob, processedJob.getJobId());
+
+        JobDto dto = JobMapper.convert(updatedJob);
+
+        domainEventPublisher.publish(
+                updatedJob,
+                Collections.singletonList(
+                        new JobProcessed(
+                                processedJob.getJobId(),
+                                type,
+                                dto.getPendingAction(),
+                                dto.getCompletedActions(),
+                                dto.getScheduledActions(),
+                                processedJob.getTimestamp()
+                        )
+                ),
+                JobProcessed.TYPE
+        );
     }
 
-    public void update(SuccessJobEvent successfullyJob) {
+    public void update(SuccessJobEvent successfullyJob, String type) {
         Job job = findById(successfullyJob.getJobId());
         Job updatedJob = Job.newBuilder(job)
                 .setSuccess(true)
@@ -229,9 +252,25 @@ public class JobService {
         log.debug("Successfully Job: {}", updatedJob);
         log.info("jobId: {}", successfullyJob.getJobId());
         updateOnlyValue(updatedJob, successfullyJob.getJobId());
+
+        JobDto dto = JobMapper.convert(updatedJob);
+
+        domainEventPublisher.publish(
+                updatedJob,
+                Collections.singletonList(
+                        new JobSuccess(
+                                successfullyJob.getJobId(),
+                                type,
+                                dto.getCompletedActions(),
+                                dto.getData(),
+                                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        )
+                ),
+                JobSuccess.TYPE
+        );
     }
 
-    public void update(FailedJobEvent failedJob) {
+    public void update(FailedJobEvent failedJob, String type) {
         Job job = findById(failedJob.getJobId());
 
         JobAction newAction = JobAction.newBuilder()
@@ -271,6 +310,22 @@ public class JobService {
         log.debug("Failed Job: {}", updatedJob);
         log.info("jobId: {}", failedJob.getJobId());
         updateOnlyValue(updatedJob, failedJob.getJobId());
+
+        JobDto dto = JobMapper.convert(updatedJob);
+
+        domainEventPublisher.publish(
+                updatedJob,
+                Collections.singletonList(
+                        new JobFailed(
+                                failedJob.getJobId(),
+                                type,
+                                dto.getCompletedActions(),
+                                dto.getErrorAttributes(),
+                                failedJob.getTimestamp()
+                        )
+                ),
+                JobFailed.TYPE
+        );
     }
 
     private void updateOnlyValue(Job updatedJob, String jobId) {
