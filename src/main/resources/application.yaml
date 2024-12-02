@@ -20,7 +20,7 @@ grpc:
   server:
     port: ${JOB_SERVICE_GRPC_PORT:9100} # default: 9090
 server:
-  port: ${JOB_SERVICE_PORT:8080}
+  port: ${JOB_SERVICE_PORT:8070}
 core:
   kafka: # kafkaプロパティ
     bootstrap:
