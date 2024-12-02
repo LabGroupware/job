@@ -18,7 +18,9 @@ job:
   expiredTime: ${JOB_EXPIRED_MS:86400000}
 grpc:
   server:
-    port: ${USER_PROFILE_SERVICE_GRPC_PORT:9100} # default: 9090
+    port: ${JOB_SERVICE_GRPC_PORT:9100} # default: 9090
+server:
+  port: ${JOB_SERVICE_PORT:8080}
 core:
   kafka: # kafkaプロパティ
     bootstrap:
