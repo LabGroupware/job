@@ -250,7 +250,6 @@ public class JobService {
                 )
                 .build();
         log.debug("Successfully Job: {}", updatedJob);
-        log.info("jobId: {}", successfullyJob.getJobId());
         updateOnlyValue(updatedJob, successfullyJob.getJobId());
 
         JobDto dto = JobMapper.convert(updatedJob);
@@ -263,7 +262,8 @@ public class JobService {
                                 type,
                                 dto.getCompletedActions(),
                                 dto.getData(),
-                                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                job.getStartedAt().getHasValue() ? job.getStartedAt().getValue() : null
                         )
                 ),
                 JobSuccess.TYPE
@@ -308,7 +308,6 @@ public class JobService {
                 )
                 .build();
         log.debug("Failed Job: {}", updatedJob);
-        log.info("jobId: {}", failedJob.getJobId());
         updateOnlyValue(updatedJob, failedJob.getJobId());
 
         JobDto dto = JobMapper.convert(updatedJob);
@@ -321,7 +320,8 @@ public class JobService {
                                 type,
                                 dto.getCompletedActions(),
                                 dto.getErrorAttributes(),
-                                failedJob.getTimestamp()
+                                failedJob.getTimestamp(),
+                                job.getStartedAt().getHasValue() ? job.getStartedAt().getValue() : null
                         )
                 ),
                 JobFailed.TYPE
