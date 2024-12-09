@@ -8,6 +8,7 @@ import org.cresplanex.api.state.common.event.model.plan.TaskUpdatedStatus;
 import org.cresplanex.core.events.common.DomainEventEnvelope;
 import org.cresplanex.core.events.subscriber.DomainEventHandlers;
 import org.cresplanex.core.events.subscriber.DomainEventHandlersBuilder;
+import org.cresplanex.nova.job.config.ApplicationConfiguration;
 import org.cresplanex.nova.job.service.JobService;
 import org.springframework.stereotype.Component;
 
@@ -18,19 +19,33 @@ public class TaskEventHandler {
 
     private final JobService jobService;
 
-    public DomainEventHandlers domainEventHandlers() {
-        return DomainEventHandlersBuilder
-                .forAggregateType(EventAggregateType.PLAN_TASK)
-                .onEvent(TaskCreated.BeginJobDomainEvent.class, this::handleBeginTaskCreated, TaskCreated.BeginJobDomainEvent.TYPE)
-                .onEvent(TaskCreated.ProcessedJobDomainEvent.class, this::handleProcessedTaskCreated, TaskCreated.ProcessedJobDomainEvent.TYPE)
-                .onEvent(TaskCreated.FailedJobDomainEvent.class, this::handleFailedTaskCreated, TaskCreated.FailedJobDomainEvent.TYPE)
-                .onEvent(TaskCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyTaskCreated, TaskCreated.SuccessJobDomainEvent.TYPE)
+    private final ApplicationConfiguration applicationConfiguration;
 
-                .onEvent(TaskUpdatedStatus.BeginJobDomainEvent.class, this::handleBeginTaskUpdatedStatus, TaskUpdatedStatus.BeginJobDomainEvent.TYPE)
-                .onEvent(TaskUpdatedStatus.ProcessedJobDomainEvent.class, this::handleProcessedTaskUpdatedStatus, TaskUpdatedStatus.ProcessedJobDomainEvent.TYPE)
-                .onEvent(TaskUpdatedStatus.FailedJobDomainEvent.class, this::handleFailedTaskUpdatedStatus, TaskUpdatedStatus.FailedJobDomainEvent.TYPE)
-                .onEvent(TaskUpdatedStatus.SuccessJobDomainEvent.class, this::handleSuccessfullyTaskUpdatedStatus, TaskUpdatedStatus.SuccessJobDomainEvent.TYPE)
-                .build();
+    public DomainEventHandlers domainEventHandlers() {
+        var handlerBuilder = DomainEventHandlersBuilder
+                .forAggregateType(EventAggregateType.PLAN_TASK);
+
+        if (applicationConfiguration.isInitializedSubscribe()) {
+            handlerBuilder.onEvent(TaskCreated.BeginJobDomainEvent.class, this::handleBeginTaskCreated, TaskCreated.BeginJobDomainEvent.TYPE)
+                .onEvent(TaskUpdatedStatus.BeginJobDomainEvent.class, this::handleBeginTaskUpdatedStatus, TaskUpdatedStatus.BeginJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isProcessedSubscribe()) {
+            handlerBuilder.onEvent(TaskCreated.ProcessedJobDomainEvent.class, this::handleProcessedTaskCreated, TaskCreated.ProcessedJobDomainEvent.TYPE)
+                .onEvent(TaskUpdatedStatus.ProcessedJobDomainEvent.class, this::handleProcessedTaskUpdatedStatus, TaskUpdatedStatus.ProcessedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isFailedSubscribe()) {
+            handlerBuilder.onEvent(TaskCreated.FailedJobDomainEvent.class, this::handleFailedTaskCreated, TaskCreated.FailedJobDomainEvent.TYPE)
+                .onEvent(TaskUpdatedStatus.FailedJobDomainEvent.class, this::handleFailedTaskUpdatedStatus, TaskUpdatedStatus.FailedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isSuccessSubscribe()) {
+            handlerBuilder.onEvent(TaskCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyTaskCreated, TaskCreated.SuccessJobDomainEvent.TYPE)
+                .onEvent(TaskUpdatedStatus.SuccessJobDomainEvent.class, this::handleSuccessfullyTaskUpdatedStatus, TaskUpdatedStatus.SuccessJobDomainEvent.TYPE);
+        }
+
+        return handlerBuilder.build();
     }
 
     private void handleBeginTaskCreated(DomainEventEnvelope<TaskCreated.BeginJobDomainEvent> dee) {

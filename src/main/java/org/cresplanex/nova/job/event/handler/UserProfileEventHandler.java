@@ -7,6 +7,7 @@ import org.cresplanex.api.state.common.event.model.userprofile.UserProfileCreate
 import org.cresplanex.core.events.common.DomainEventEnvelope;
 import org.cresplanex.core.events.subscriber.DomainEventHandlers;
 import org.cresplanex.core.events.subscriber.DomainEventHandlersBuilder;
+import org.cresplanex.nova.job.config.ApplicationConfiguration;
 import org.cresplanex.nova.job.service.JobService;
 import org.springframework.stereotype.Component;
 
@@ -17,14 +18,29 @@ public class UserProfileEventHandler {
 
     private final JobService jobService;
 
+    private final ApplicationConfiguration applicationConfiguration;
+
     public DomainEventHandlers domainEventHandlers() {
-        return DomainEventHandlersBuilder
-                .forAggregateType(EventAggregateType.USER_PROFILE)
-                .onEvent(UserProfileCreated.BeginJobDomainEvent.class, this::handleBeginUserCreated, UserProfileCreated.BeginJobDomainEvent.TYPE)
-                .onEvent(UserProfileCreated.ProcessedJobDomainEvent.class, this::handleProcessedUserCreated, UserProfileCreated.ProcessedJobDomainEvent.TYPE)
-                .onEvent(UserProfileCreated.FailedJobDomainEvent.class, this::handleFailedUserCreated, UserProfileCreated.FailedJobDomainEvent.TYPE)
-                .onEvent(UserProfileCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyUserCreated, UserProfileCreated.SuccessJobDomainEvent.TYPE)
-                .build();
+        var handlerBuilder = DomainEventHandlersBuilder
+                .forAggregateType(EventAggregateType.USER_PROFILE);
+
+        if (applicationConfiguration.isInitializedSubscribe()) {
+            handlerBuilder.onEvent(UserProfileCreated.BeginJobDomainEvent.class, this::handleBeginUserCreated, UserProfileCreated.BeginJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isProcessedSubscribe()) {
+            handlerBuilder.onEvent(UserProfileCreated.ProcessedJobDomainEvent.class, this::handleProcessedUserCreated, UserProfileCreated.ProcessedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isFailedSubscribe()) {
+            handlerBuilder.onEvent(UserProfileCreated.FailedJobDomainEvent.class, this::handleFailedUserCreated, UserProfileCreated.FailedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isSuccessSubscribe()) {
+            handlerBuilder.onEvent(UserProfileCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyUserCreated, UserProfileCreated.SuccessJobDomainEvent.TYPE);
+        }
+
+        return handlerBuilder.build();
     }
 
     private void handleBeginUserCreated(DomainEventEnvelope<UserProfileCreated.BeginJobDomainEvent> dee) {

@@ -7,6 +7,7 @@ import org.cresplanex.api.state.common.event.model.userpreference.UserPreference
 import org.cresplanex.core.events.common.DomainEventEnvelope;
 import org.cresplanex.core.events.subscriber.DomainEventHandlers;
 import org.cresplanex.core.events.subscriber.DomainEventHandlersBuilder;
+import org.cresplanex.nova.job.config.ApplicationConfiguration;
 import org.cresplanex.nova.job.service.JobService;
 import org.springframework.stereotype.Component;
 
@@ -17,14 +18,29 @@ public class UserPreferenceEventHandler {
 
     private final JobService jobService;
 
+    private final ApplicationConfiguration applicationConfiguration;
+
     public DomainEventHandlers domainEventHandlers() {
-        return DomainEventHandlersBuilder
-                .forAggregateType(EventAggregateType.USER_PREFERENCE)
-                .onEvent(UserPreferenceUpdated.BeginJobDomainEvent.class, this::handleBeginUserPreferenceUpdated, UserPreferenceUpdated.BeginJobDomainEvent.TYPE)
-                .onEvent(UserPreferenceUpdated.ProcessedJobDomainEvent.class, this::handleProcessedUserPreferenceUpdated, UserPreferenceUpdated.ProcessedJobDomainEvent.TYPE)
-                .onEvent(UserPreferenceUpdated.FailedJobDomainEvent.class, this::handleFailedUserPreferenceUpdated, UserPreferenceUpdated.FailedJobDomainEvent.TYPE)
-                .onEvent(UserPreferenceUpdated.SuccessJobDomainEvent.class, this::handleSuccessfullyUserPreferenceUpdated, UserPreferenceUpdated.SuccessJobDomainEvent.TYPE)
-                .build();
+        var handlerBuilder = DomainEventHandlersBuilder
+                .forAggregateType(EventAggregateType.USER_PREFERENCE);
+
+        if (applicationConfiguration.isInitializedSubscribe()) {
+            handlerBuilder.onEvent(UserPreferenceUpdated.BeginJobDomainEvent.class, this::handleBeginUserPreferenceUpdated, UserPreferenceUpdated.BeginJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isProcessedSubscribe()) {
+            handlerBuilder.onEvent(UserPreferenceUpdated.ProcessedJobDomainEvent.class, this::handleProcessedUserPreferenceUpdated, UserPreferenceUpdated.ProcessedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isFailedSubscribe()) {
+            handlerBuilder.onEvent(UserPreferenceUpdated.FailedJobDomainEvent.class, this::handleFailedUserPreferenceUpdated, UserPreferenceUpdated.FailedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isSuccessSubscribe()) {
+            handlerBuilder.onEvent(UserPreferenceUpdated.SuccessJobDomainEvent.class, this::handleSuccessfullyUserPreferenceUpdated, UserPreferenceUpdated.SuccessJobDomainEvent.TYPE);
+        }
+
+        return handlerBuilder.build();
     }
 
     private void handleBeginUserPreferenceUpdated(DomainEventEnvelope<UserPreferenceUpdated.BeginJobDomainEvent> dee) {

@@ -8,6 +8,7 @@ import org.cresplanex.api.state.common.event.model.team.TeamCreated;
 import org.cresplanex.core.events.common.DomainEventEnvelope;
 import org.cresplanex.core.events.subscriber.DomainEventHandlers;
 import org.cresplanex.core.events.subscriber.DomainEventHandlersBuilder;
+import org.cresplanex.nova.job.config.ApplicationConfiguration;
 import org.cresplanex.nova.job.service.JobService;
 import org.springframework.stereotype.Component;
 
@@ -18,19 +19,34 @@ public class TeamEventHandler {
 
     private final JobService jobService;
 
-    public DomainEventHandlers domainEventHandlers() {
-        return DomainEventHandlersBuilder
-                .forAggregateType(EventAggregateType.TEAM)
-                .onEvent(TeamCreated.BeginJobDomainEvent.class, this::handleBeginTeamCreated, TeamCreated.BeginJobDomainEvent.TYPE)
-                .onEvent(TeamCreated.ProcessedJobDomainEvent.class, this::handleProcessedTeamCreated, TeamCreated.ProcessedJobDomainEvent.TYPE)
-                .onEvent(TeamCreated.FailedJobDomainEvent.class, this::handleFailedTeamCreated, TeamCreated.FailedJobDomainEvent.TYPE)
-                .onEvent(TeamCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyTeamCreated, TeamCreated.SuccessJobDomainEvent.TYPE)
+    private final ApplicationConfiguration applicationConfiguration;
 
-                .onEvent(TeamAddedUsers.BeginJobDomainEvent.class, this::handleBeginTeamAddedUsers, TeamAddedUsers.BeginJobDomainEvent.TYPE)
-                .onEvent(TeamAddedUsers.ProcessedJobDomainEvent.class, this::handleProcessedTeamAddedUsers, TeamAddedUsers.ProcessedJobDomainEvent.TYPE)
-                .onEvent(TeamAddedUsers.FailedJobDomainEvent.class, this::handleFailedTeamAddedUsers, TeamAddedUsers.FailedJobDomainEvent.TYPE)
-                .onEvent(TeamAddedUsers.SuccessJobDomainEvent.class, this::handleSuccessfullyTeamAddedUsers, TeamAddedUsers.SuccessJobDomainEvent.TYPE)
-                .build();
+    public DomainEventHandlers domainEventHandlers() {
+        var handlerBuilder = DomainEventHandlersBuilder
+                .forAggregateType(EventAggregateType.TEAM);
+
+        if (applicationConfiguration.isInitializedSubscribe()) {
+            handlerBuilder.onEvent(TeamCreated.BeginJobDomainEvent.class, this::handleBeginTeamCreated, TeamCreated.BeginJobDomainEvent.TYPE)
+                .onEvent(TeamAddedUsers.BeginJobDomainEvent.class, this::handleBeginTeamAddedUsers, TeamAddedUsers.BeginJobDomainEvent.TYPE);
+
+        }
+
+        if (applicationConfiguration.isProcessedSubscribe()) {
+            handlerBuilder.onEvent(TeamCreated.ProcessedJobDomainEvent.class, this::handleProcessedTeamCreated, TeamCreated.ProcessedJobDomainEvent.TYPE)
+                .onEvent(TeamAddedUsers.ProcessedJobDomainEvent.class, this::handleProcessedTeamAddedUsers, TeamAddedUsers.ProcessedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isFailedSubscribe()) {
+            handlerBuilder.onEvent(TeamCreated.FailedJobDomainEvent.class, this::handleFailedTeamCreated, TeamCreated.FailedJobDomainEvent.TYPE)
+                .onEvent(TeamAddedUsers.FailedJobDomainEvent.class, this::handleFailedTeamAddedUsers, TeamAddedUsers.FailedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isSuccessSubscribe()) {
+            handlerBuilder.onEvent(TeamCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyTeamCreated, TeamCreated.SuccessJobDomainEvent.TYPE)
+                .onEvent(TeamAddedUsers.SuccessJobDomainEvent.class, this::handleSuccessfullyTeamAddedUsers, TeamAddedUsers.SuccessJobDomainEvent.TYPE);
+        }
+
+        return handlerBuilder.build();
     }
 
     private void handleBeginTeamCreated(DomainEventEnvelope<TeamCreated.BeginJobDomainEvent> dee) {

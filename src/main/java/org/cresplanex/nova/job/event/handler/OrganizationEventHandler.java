@@ -8,7 +8,9 @@ import org.cresplanex.api.state.common.event.model.organization.OrganizationCrea
 import org.cresplanex.core.events.common.DomainEventEnvelope;
 import org.cresplanex.core.events.subscriber.DomainEventHandlers;
 import org.cresplanex.core.events.subscriber.DomainEventHandlersBuilder;
+import org.cresplanex.nova.job.config.ApplicationConfiguration;
 import org.cresplanex.nova.job.service.JobService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -18,19 +20,33 @@ public class OrganizationEventHandler {
 
     private final JobService jobService;
 
-    public DomainEventHandlers domainEventHandlers() {
-        return DomainEventHandlersBuilder
-                .forAggregateType(EventAggregateType.ORGANIZATION)
-                .onEvent(OrganizationCreated.BeginJobDomainEvent.class, this::handleBeginOrganizationCreated, OrganizationCreated.BeginJobDomainEvent.TYPE)
-                .onEvent(OrganizationCreated.ProcessedJobDomainEvent.class, this::handleProcessedOrganizationCreated, OrganizationCreated.ProcessedJobDomainEvent.TYPE)
-                .onEvent(OrganizationCreated.FailedJobDomainEvent.class, this::handleFailedOrganizationCreated, OrganizationCreated.FailedJobDomainEvent.TYPE)
-                .onEvent(OrganizationCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyOrganizationCreated, OrganizationCreated.SuccessJobDomainEvent.TYPE)
+    private final ApplicationConfiguration applicationConfiguration;
 
-                .onEvent(OrganizationAddedUsers.BeginJobDomainEvent.class, this::handleBeginOrganizationAddedUsers, OrganizationAddedUsers.BeginJobDomainEvent.TYPE)
-                .onEvent(OrganizationAddedUsers.ProcessedJobDomainEvent.class, this::handleProcessedOrganizationAddedUsers, OrganizationAddedUsers.ProcessedJobDomainEvent.TYPE)
-                .onEvent(OrganizationAddedUsers.FailedJobDomainEvent.class, this::handleFailedOrganizationAddedUsers, OrganizationAddedUsers.FailedJobDomainEvent.TYPE)
-                .onEvent(OrganizationAddedUsers.SuccessJobDomainEvent.class, this::handleSuccessfullyOrganizationAddedUsers, OrganizationAddedUsers.SuccessJobDomainEvent.TYPE)
-                .build();
+    public DomainEventHandlers domainEventHandlers() {
+        var handlerBuilder = DomainEventHandlersBuilder
+                .forAggregateType(EventAggregateType.ORGANIZATION);
+
+        if (applicationConfiguration.isInitializedSubscribe()) {
+            handlerBuilder.onEvent(OrganizationCreated.BeginJobDomainEvent.class, this::handleBeginOrganizationCreated, OrganizationCreated.BeginJobDomainEvent.TYPE)
+                    .onEvent(OrganizationAddedUsers.BeginJobDomainEvent.class, this::handleBeginOrganizationAddedUsers, OrganizationAddedUsers.BeginJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isProcessedSubscribe()) {
+            handlerBuilder.onEvent(OrganizationCreated.ProcessedJobDomainEvent.class, this::handleProcessedOrganizationCreated, OrganizationCreated.ProcessedJobDomainEvent.TYPE)
+                    .onEvent(OrganizationAddedUsers.ProcessedJobDomainEvent.class, this::handleProcessedOrganizationAddedUsers, OrganizationAddedUsers.ProcessedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isFailedSubscribe()) {
+            handlerBuilder.onEvent(OrganizationCreated.FailedJobDomainEvent.class, this::handleFailedOrganizationCreated, OrganizationCreated.FailedJobDomainEvent.TYPE)
+                    .onEvent(OrganizationAddedUsers.FailedJobDomainEvent.class, this::handleFailedOrganizationAddedUsers, OrganizationAddedUsers.FailedJobDomainEvent.TYPE);
+        }
+
+        if (applicationConfiguration.isSuccessSubscribe()) {
+            handlerBuilder.onEvent(OrganizationCreated.SuccessJobDomainEvent.class, this::handleSuccessfullyOrganizationCreated, OrganizationCreated.SuccessJobDomainEvent.TYPE)
+                    .onEvent(OrganizationAddedUsers.SuccessJobDomainEvent.class, this::handleSuccessfullyOrganizationAddedUsers, OrganizationAddedUsers.SuccessJobDomainEvent.TYPE);
+        }
+
+        return handlerBuilder.build();
     }
 
     private void handleBeginOrganizationCreated(DomainEventEnvelope<OrganizationCreated.BeginJobDomainEvent> dee) {
