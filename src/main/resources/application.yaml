@@ -9,6 +9,12 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5442/job}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:20}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:60000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}
+      leak-detection-threshold: ${DB_LEAK_DETECTION_THRESHOLD:60000}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -24,6 +30,8 @@ job:
 grpc:
   server:
     port: ${JOB_SERVICE_GRPC_PORT:9100} # default: 9090
+    keep-alive-timeout: 60
+    keep-alive-time: 600
 server:
   port: ${JOB_SERVICE_PORT:8070}
 core:
